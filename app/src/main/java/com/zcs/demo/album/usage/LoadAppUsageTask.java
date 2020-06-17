@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by ZengCS on 2019/1/31.
- * E-mail:zcs@sxw.cn
- * Add:成都市天府软件园E3-3F
+ * Created by ZengCS on 2019/5/30.
+ * E-mail:zengcs@vip.qq.com
+ * Add:成都市天府软件园E3
  * 加载应用使用情况 Task
  */
 public class LoadAppUsageTask extends AsyncTask<Void, Void, ArrayList<AppUsageBean>> {

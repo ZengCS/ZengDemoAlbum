@@ -3,6 +3,7 @@ package com.zcs.demo.album.usage;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,24 +24,30 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Created by ZengCS on 2019/5/30.
+ * E-mail:zengcs@vip.qq.com
+ * Add:成都市天府软件园E3
+ */
 public class AppUsageActivity extends BaseActivity {
+    private static final String TAG = "AppUsageActivity";
     private ActivityAppUsageBinding mHolder;
     private List<AppUsageBean> mItems;
     private CommonRecyclerAdapter<AppUsageBean> mAdapter;
-    private static final String[] TABS = {
-            "今日数据", "昨日数据",
-            "本周数据", "本月数据", "年度数据",
-    };
+    private static final String[] TAB_NAMES = {"今日数据", "昨日数据", "本周数据", "本月数据", "年度数据"};
+    private boolean isGoToGrand = false;// 是否去过授权页面
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        // 绑定UI
         mHolder = ActivityAppUsageBinding.inflate(getLayoutInflater());
         setContentView(mHolder.getRoot());
+
+        // 初始化Tab
         int c = 0;
         TabLayout tabLayout = mHolder.tabCondition;
-        for (String name : TABS) {
+        for (String name : TAB_NAMES) {
             TabLayout.Tab tab = tabLayout.newTab();
             tab.setTag(c);
             tab.view.setOnClickListener(v -> onTabClick((int) tab.getTag()));
@@ -48,25 +55,43 @@ public class AppUsageActivity extends BaseActivity {
             c++;
         }
 
-        if (AppUsageUtil.checkAppUsagePermission(this)) {
+        // 授权|加载数据
+        initData();
+    }
+
+    private void initData() {
+        if (AppUsageUtil.hasAppUsagePermission(this)) {
             // 默认加载今天的数据
-            setTitle("今日数据");
-            getAppUsage(getTodayTime0(), System.currentTimeMillis());
+            isGoToGrand = false;
+            onTabClick(0);
         } else {
+            isGoToGrand = true;
+            // TODO 这里有点强制开启的意思，实际应用中最好弹出一个对话框让用户知道，并可以选择【授权】或【退出】
             AppUsageUtil.requestAppUsagePermission(this);
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (isGoToGrand) {// 如果从应用跳转到了授权，那么返回应用的时候 需要重新执行一次
+            initData();
+        }
+    }
+
     public void onTabClick(int position) {
-        Toast.makeText(this, "position = " + position, Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "onTabClick() called with: position = [" + position + "]");
+
+        setTitle(TAB_NAMES[position]);
         long currTime = System.currentTimeMillis();
-        setTitle(TABS[position]);
+
         switch (position) {
             case 0:// 今天的数据  00:00 到 现在
                 getAppUsage(getTodayTime0(), currTime);
                 break;
             case 1:// 昨天的数据  昨天00:00 - 今天00:00
-                getAppUsage(getTodayTime0() - DateUtils.DAY_IN_MILLIS, getTodayTime0());
+                long todayTime0 = getTodayTime0();
+                getAppUsage(todayTime0 - DateUtils.DAY_IN_MILLIS, todayTime0);
                 break;
             case 2:// 最近7天数据
                 getAppUsage(currTime - DateUtils.WEEK_IN_MILLIS, currTime);
@@ -118,7 +143,7 @@ public class AppUsageActivity extends BaseActivity {
         }
     }
 
-    private long maxTime;
+    private long maxTime;// 当前列表中 使用最久的APP时间 用于计算进度条百分比
 
     private void initAdapter() {
         if (JListKit.isNotEmpty(mItems)) {
@@ -127,7 +152,7 @@ public class AppUsageActivity extends BaseActivity {
         } else {
             maxTime = 1;
         }
-        setTitle(String.format("%s APP使用记录[%s]条", getTitle(), mItems.size()));
+        setTitle(String.format("%s (共%s条)", getTitle(), mItems.size()));
         if (mAdapter == null) {
             String fmt = "yyyy-MM-dd HH:mm:ss";
             mAdapter = new CommonRecyclerAdapter<AppUsageBean>(R.layout.item_app_usage, mItems) {
@@ -143,6 +168,7 @@ public class AppUsageActivity extends BaseActivity {
                     long totalTimeInForeground = item.getTotalTimeInForeground();
                     helper.setText(R.id.id_tv_time_in_foreground, String.format("使用时长:%s (%sms)", JDateKit.timeToStringChineChinese(totalTimeInForeground), totalTimeInForeground));
                     helper.setText(R.id.id_tv_last_usage, String.format("上次使用:%s", JDateKit.timeToDate(fmt, item.getLastTimeUsed())));
+                    // 计算进度条百分比
                     float percent = (float) item.getTotalTimeInForeground() / maxTime;
                     Guideline guideline = helper.getView(R.id.guideline);
                     guideline.setGuidelinePercent(percent);

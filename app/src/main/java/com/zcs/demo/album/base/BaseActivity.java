@@ -11,6 +11,11 @@ import com.zcs.demo.album.databinding.DialogLoadingBinding;
 
 import java.util.Objects;
 
+/**
+ * Created by ZengCS on 2019/5/30.
+ * E-mail:zengcs@vip.qq.com
+ * Add:成都市天府软件园E3
+ */
 public abstract class BaseActivity extends AppCompatActivity {
     private AlertDialog alertDialog;
 

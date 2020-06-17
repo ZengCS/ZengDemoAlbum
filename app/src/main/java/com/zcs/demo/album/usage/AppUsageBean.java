@@ -8,6 +8,11 @@ import androidx.annotation.NonNull;
 
 import java.io.Serializable;
 
+/**
+ * Created by ZengCS on 2019/5/30.
+ * E-mail:zengcs@vip.qq.com
+ * Add:成都市天府软件园E3
+ */
 public class AppUsageBean implements Serializable, Comparable<AppUsageBean> {
     private String packageName;
     private ApplicationInfo appInfo;

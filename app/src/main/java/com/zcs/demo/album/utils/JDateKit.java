@@ -11,6 +11,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+/**
+ * Created by ZengCS on 2019/5/30.
+ * E-mail:zengcs@vip.qq.com
+ * Add:成都市天府软件园E3
+ */
 public class JDateKit {
     private static final String TAG = "JDateKit";
     public static final long ONE_HOUR = 3600000L;
